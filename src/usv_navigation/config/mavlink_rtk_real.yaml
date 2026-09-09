@@ -1,0 +1,55 @@
+# Dual-antenna RTK data forwarded by the flight controller over MAVLink.
+# The port is a Jetson GPIO UART, not a USB GPS device. Override it at launch
+# after checking the actual /dev/ttyTHS* device on the deployed image.
+mavlink_rtk_bridge:
+  ros__parameters:
+    use_sim_time: false
+    port: /dev/ttyTHS1
+    baud: 115200
+    frame_id: gps_link
+    heading_topic: /gps/heading
+    heading_source_topic: /gps/heading_source
+    status_topic: /gps/status
+    raw_topic: /gps/mavlink_raw
+    publish_raw_serial: true
+    raw_publish_max_bytes: 512
+    request_stream: true
+    stream_rate_hz: 10.0
+    reconnect_period_s: 2.0
+    stale_timeout_s: 2.0
+    # Lower-quality heading fallbacks may replace RTK yaw only after this age.
+    heading_fallback_timeout_s: 2.0
+    # Add 180.0 if the reported moving-baseline direction points aft.
+    heading_offset_deg: 0.0
+    source_system: 255
+    source_component: 190
+    # 0 means use the system/component ID from HEARTBEAT.
+    target_system: 0
+    target_component: 0
+    default_horizontal_accuracy_m: 2.0
+    default_vertical_accuracy_m: 3.0
+    mission_upload_enabled: false
+    mission_path_topic: /plan_geodetic
+    mission_max_points: 100
+    mission_min_spacing_m: 1.0
+    mission_acceptance_radius_m: 1.0
+    # MAV_FRAME_GLOBAL_RELATIVE_ALT. Set to 6 if the FC requires the explicit
+    # scaled-integer frame (MAV_FRAME_GLOBAL_RELATIVE_ALT_INT).
+    mission_frame: 3
+    mission_altitude_m: 0.0
+    mission_use_path_altitude: false
+    mission_timeout_s: 3.0
+    # Number of retries after the initial MISSION_COUNT.  0 means send once
+    # and wait for a newer path after timeout.
+    mission_max_retries: 3
+
+heading_to_imu:
+  ros__parameters:
+    use_sim_time: false
+    imu_topic: /unilidar/imu
+    heading_topic: /gps/heading
+    output_topic: /gps/heading_imu
+    yaw_variance: 0.01
+    require_heading: true
+    # Do not feed a stale absolute yaw into navsat_transform.
+    heading_timeout_s: 2.5

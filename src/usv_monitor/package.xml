@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>usv_monitor</name>
+  <version>0.1.0</version>
+  <description>Qt5 dashboard for monitoring the real USV ROS 2 data pipeline.</description>
+  <maintainer email="jkjkzhang@todo.todo">jkjkzhang</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>qtbase5-dev</build_depend>
+  <depend>rclcpp</depend>
+  <depend>rcl_interfaces</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geographic_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

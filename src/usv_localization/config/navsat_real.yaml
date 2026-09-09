@@ -1,0 +1,39 @@
+### navsat_transform_node: GPS fix -> odometry in the odom (== camera_init) frame
+navsat_transform_node:
+    ros__parameters:
+        use_sim_time: false
+        frequency: 10.0
+        delay: 0.0
+
+        # gz-sim IMU yaw is RELATIVE to spawn orientation (no ENU reference
+        # configured in wamv_imu.xacro). The WAM-V spawns at yaw = 1.0 rad in
+        # the ENU-aligned world (competition.launch.py: [-532, 162, 0, 0, 0, 1]).
+        # That offset used to live HERE (yaw_offset: 1.0) to turn the
+        # spawn-relative /odometry/filtered yaw into ENU. Since the
+        # covariance_injector now rotates the fused LIO yaw into ENU directly,
+        # /odometry/filtered yaw is already ENU -- adding it again would
+        # double-apply the rotation and break the GPS anchor. Keep 0.0.
+        yaw_offset: 0.0
+        magnetic_declination_radians: 0.0
+
+        zero_altitude: true          # trust LiDAR/EKF Z (two_d_mode), not GPS altitude
+        # 实船统一用双天线 RTK 的绝对 yaw 锚定 utm -> camera_init 的朝向，
+        # 保证 RViz/地图里船头方向与真实地图北方一致。因此这里必须是 false：
+        # navsat 从 imu（remap 到 /gps/heading_imu，即 heading_to_imu 合成的
+        # RTK yaw + L1 IMU roll/pitch）取航向，而不是 odometry（Point-LIO 的 LIO yaw）。
+        # 该值会被 launch 覆盖，见 real_boat_system.launch.py / navsat_only.launch.py。
+        use_odometry_yaw: false
+        wait_for_datum: false        # datum = first GPS fix
+        publish_filtered_gps: false
+        # Jazzy robot_localization parameter: publish utm -> camera_init.
+        # The geodetic goal/path nodes use this TF as their metric bridge.
+        broadcast_utm_transform: true
+        broadcast_utm_transform_as_parent_frame: true
+
+        # Real-boat frame tree: Point-LIO publishes camera_init -> aft_mapped,
+        # and the real launch supplies aft_mapped -> base_link.
+        map_frame: camera_init
+        odom_frame: camera_init
+        base_link_frame: base_link
+        world_frame: camera_init
+        transform_timeout: 0.1

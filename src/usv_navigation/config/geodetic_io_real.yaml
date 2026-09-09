@@ -1,0 +1,88 @@
+# Real-boat geodetic I/O. Nav2 continues to use metres in camera_init.
+target_waypoint_serial:
+  ros__parameters:
+    use_sim_time: false
+    port: /dev/ttyUSB2
+    baud: 115200
+    frame_id: target_source
+    read_timeout_s: 0.05
+    poll_period_s: 0.05
+    reconnect_period_s: 2.0
+    max_line_length: 512
+
+target_to_goal:
+  ros__parameters:
+    use_sim_time: false
+    target_topic: /target/fix
+    gps_topic: /gps/fix
+    goal_topic: /goal_pose
+    global_frame: camera_init
+    utm_frame: utm
+    goal_altitude_m: 0.0
+    publish_period_s: 0.2
+    tf_timeout_s: 0.5
+    max_target_distance_m: 5000.0
+    reject_zone_mismatch: true
+    status_topic: /usv/goal_status
+    retry_period_s: 1.0
+    # 0 = retry indefinitely while TF/GPS/Nav2 are starting.
+    max_goal_retries: 0
+
+target_waypoints_to_goals:
+  ros__parameters:
+    use_sim_time: false
+    waypoints_topic: /target/geopath
+    gps_topic: /gps/fix
+    goals_topic: /goal_poses
+    global_frame: camera_init
+    utm_frame: utm
+    goal_altitude_m: 0.0
+    tf_timeout_s: 0.5
+    max_waypoints: 200
+    # Reject the whole route if any single waypoint is invalid, instead of
+    # silently planning the remaining subset.
+    strict_waypoint_validation: true
+    # Reject a route whose waypoints span different UTM zones/hemispheres or
+    # that disagree with the boat's current zone.
+    reject_zone_mismatch: true
+    # 0 = disable.  Otherwise reject any waypoint farther than this from the
+    # boat's current position (metres).
+    max_waypoint_distance_m: 5000.0
+    # 0 = disable.  Otherwise reject a route with a segment longer than this
+    # between adjacent waypoints (metres).
+    max_segment_distance_m: 0.0
+
+geodetic_goal_planner:
+  ros__parameters:
+    use_sim_time: false
+    goal_topic: /goal_pose
+    path_topic: /plan
+    # ComputePathThroughPoses hands the whole ordered waypoint list to
+    # SmacPlannerHybrid in one action and returns one continuous path through
+    # every waypoint in order, rather than concatenating per-segment plans.
+    action_name: /compute_path_through_poses
+    planner_id: GridBased
+    server_timeout_s: 2.0
+    retry_period_s: 1.0
+    # Recompute around new LiDAR obstacles/current pose while the target stays
+    # unchanged. Set to a larger value to reduce planner/MAVLink updates.
+    replan_period_s: 1.0
+    # 0 = keep retrying while the planner/costmap is starting.
+    max_retries: 0
+
+
+geodetic_path_publisher:
+  ros__parameters:
+    use_sim_time: false
+    plan_topic: /plan
+    gps_topic: /gps/fix
+    geo_path_topic: /plan_geodetic
+    json_topic: /plan_geodetic_json
+    utm_frame: utm
+    tf_timeout_s: 0.5
+    altitude_fallback_m: 0.0
+    min_point_spacing_m: 0.0
+    # Leave empty to publish only ROS topics. Set to e.g. /dev/ttyUSB3
+    # when a downstream controller expects one-line JSON over serial.
+    output_port: ''
+    output_baud: 115200
